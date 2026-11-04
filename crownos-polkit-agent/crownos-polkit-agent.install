@@ -1,0 +1,7 @@
+post_install() {
+  systemctl --global enable crownos-polkit-agent.service
+}
+
+pre_remove() {
+  systemctl --global disable crownos-polkit-agent.service
+}
