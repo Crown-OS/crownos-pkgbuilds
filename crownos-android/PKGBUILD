@@ -1,0 +1,47 @@
+pkgname=crownos-android
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Android apps in native CrownOS windows, run by one Waydroid session"
+arch=(x86_64)
+url="https://github.com/Crown-OS/crownos-android"
+license=('MIT OR Apache-2.0')
+depends=(gcc-libs glibc waydroid lxc python-gbinder libgbinder libglibutil dnsmasq crownotify)
+makedepends=(cargo git)
+install=crownos-android.install
+_bundle_version=2026.11.0
+# The bundle archive holds the unpacked bundle tree, manifest.json and
+# manifest.json.minisig at its root. It needs no checksum here: the setup
+# service verifies the manifest signature and every file's sha256 before it
+# trusts the bundle.
+source=("$pkgname::git+$url.git#tag=v$pkgver"
+        "crownos-config::git+https://github.com/Crown-OS/crownos-config.git#commit=7cd580875bd8fabda64e8a603b4ff27c65d31d5f"
+        "crownos-ipc::git+https://github.com/Crown-OS/crownos-ipc.git#commit=ee919989cacbeaac3d48e3b705ee38b8e54f7e44"
+        "crownos-protocols::git+https://github.com/Crown-OS/crownos-protocols.git#commit=dd3ba62dc4cf877b53d35ab5c76192b362b9716c"
+        "bundle-$_bundle_version.tar.zst::$url/releases/download/v$pkgver/bundle-$_bundle_version.tar.zst")
+noextract=("bundle-$_bundle_version.tar.zst")
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+
+prepare() {
+  cd "$pkgname"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$pkgname"
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
+  cargo build --frozen --release -p crownos-android-daemon -p crownos-android-cli -p crownos-android-setup
+}
+
+package() {
+  cd "$pkgname"
+  install -Dm755 target/release/crown-androidd target/release/crown-android -t "$pkgdir/usr/bin"
+  install -Dm755 target/release/crownos-android-setup -t "$pkgdir/usr/lib/crownos-android"
+  cp -r --no-preserve=ownership packaging/rootfs/. "$pkgdir/"
+
+  local bundle="$pkgdir/usr/share/crownos-android/bundle/$_bundle_version"
+  install -d "$bundle"
+  bsdtar -xf "$srcdir/bundle-$_bundle_version.tar.zst" -C "$bundle" --no-same-owner
+  [[ -f $bundle/manifest.json && -f $bundle/manifest.json.minisig ]] ||
+    { echo "bundle-$_bundle_version.tar.zst has no signed manifest.json at its root" >&2; return 1; }
+}
