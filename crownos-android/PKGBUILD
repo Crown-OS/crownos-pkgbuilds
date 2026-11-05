@@ -38,6 +38,7 @@ package() {
   install -Dm755 target/release/crown-androidd target/release/crown-android -t "$pkgdir/usr/bin"
   install -Dm755 target/release/crownos-android-setup -t "$pkgdir/usr/lib/crownos-android"
   cp -r --no-preserve=ownership packaging/rootfs/. "$pkgdir/"
+  install -Dm644 LICENSE-MIT LICENSE-APACHE -t "$pkgdir/usr/share/licenses/$pkgname"
 
   local bundle="$pkgdir/usr/share/crownos-android/bundle/$_bundle_version"
   install -d "$bundle"
