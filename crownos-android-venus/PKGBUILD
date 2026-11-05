@@ -1,0 +1,34 @@
+pkgname=crownos-android-venus
+pkgver=2026.11.0
+pkgrel=1
+pkgdesc="Venus GPU tier for CrownOS Android apps on NVIDIA-only machines"
+arch=(x86_64)
+url="https://github.com/Crown-OS/crownos-android"
+license=(MIT BSD-3-Clause)
+depends=(crownos-android nvidia-utils glibc libdrm libepoxy mesa vulkan-icd-loader)
+options=(!strip !debug)
+_commit=fce7d14b73363464b779d64be600b0d3431fff6d
+source=("crownos-android::git+$url.git#commit=$_commit"
+        "$url/releases/download/venus-$pkgver/$pkgname-$pkgver.tar.zst")
+sha256sums=('SKIP'
+            '1c05b415098573de8731c21599caf19856c509db90bbf94e26d9718e4fd3b3f1')
+
+package() {
+  local venus=crownos-android/packaging/venus artifacts=$pkgname-$pkgver
+  local overlay=/usr/share/crownos-android/venus/overlay
+  local file
+
+  cd "$srcdir/$artifacts"
+  sha256sum --check --quiet SHA256SUMS
+  while IFS= read -r file; do
+    install -Dm644 "overlay/$file" "$pkgdir$overlay/$file"
+  done < <(find overlay -type f -printf '%P\n')
+  install -Dm755 host/virgl_test_server host/virgl_render_server host/libvirglrenderer.so.1 \
+    -t "$pkgdir/usr/lib/crownos-android/venus"
+  install -Dm644 licenses/* -t "$pkgdir/usr/share/licenses/$pkgname"
+
+  cd "$srcdir/$venus"
+  install -Dm644 crownos-android-render.service -t "$pkgdir/usr/lib/systemd/user"
+  install -Dm644 70-crownos-android-udmabuf.rules -t "$pkgdir/usr/lib/udev/rules.d"
+  install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
+}
