@@ -13,7 +13,7 @@ optdepends=('gst-plugin-va: hardware-decoded video thumbnails'
             'crownos-preview: quick look')
 makedepends=(cargo git pkgconf)
 source=("$pkgname::git+$url.git#tag=v$pkgver"
-        "crownconnect-linux::git+https://github.com/Crown-OS/crownconnect-linux.git#commit=1f98db9bee635514cf0d2030a4ddcc20b84fba92"
+        "crownconnect-linux::git+https://github.com/Crown-OS/crownlink-linux.git#commit=1f98db9bee635514cf0d2030a4ddcc20b84fba92"
         "crownos-config::git+https://github.com/Crown-OS/crownos-config.git#commit=10da919cac672bb14fc8145fde321e50aaa90cf3"
         "crownos-ipc::git+https://github.com/Crown-OS/crownos-ipc.git#commit=1bdb5a681314e10d78876d11ad8362901eebd798"
         "crownos-preview::git+https://github.com/Crown-OS/crownos-preview.git#commit=e48d17542d3da34474007bac064715c334a113c5"
